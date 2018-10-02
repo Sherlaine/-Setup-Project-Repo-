@@ -1,29 +1,51 @@
-var secrets = require ('./secrets');
+//they are modules that I need in this file
+var secrets = require('./secrets');
 var request = require('request');
+var fs = require('fs');
+var inputOne = process.argv[2];
+var inputTwo = process.argv[3];
+
+//introduction to our file
 console.log('Welcome to the GitHub Avatar Downloader!');
 
 
 
+//
 function getRepoContributors(repoOwner, repoName, cb) {
     var options = {
-      url: "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/contributors",
-      headers: {
-        'User-Agent': 'request',
-        'Authorization':'token ' + secrets.GITHUB_TOKEN
-      }
+        url: "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/contributors",
+        headers: {
+            'User-Agent': 'request',
+            'Authorization': 'token ' + secrets.GITHUB_TOKEN
+        }
     };
-  
-    request(options, function(err, res, body) {
-      var parsedBody = JSON.parse(body);
-      parsedBody.forEach(function(element){
-        cb(err,element);
-      });
-  
+
+    if (inputOne === undefined || inputTwo === undefined) {
+        console.log('Error in your arguments');
+        return false;
+    }
+
+    request(options, function (err, res, body) {
+        var parsedBody = JSON.parse(body);
+        parsedBody.forEach(function (element) {
+            cb(err, element);
+        });
+
     });
-  }
+}
+
+function downloadImageByURL(url, filePath) {
 
 
-getRepoContributors("jquery", "jquery", function (err, result) {
-    console.log(result.avatar_url);
-    
+    request(url).pipe(fs.createWriteStream(filePath));
+
+}
+
+getRepoContributors(inputOne, inputTwo, function (err, result) {
+    var url = result.avatar_url;
+    var filePath = "avatars/" + result.login + ".jpg";
+    downloadImageByURL(url, filePath);
+
+    // avatars/[login].jpg
+
 });
